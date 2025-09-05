@@ -104,7 +104,7 @@
         let score = 0;
         let timeLeft = 0;
         let timerInterval;
-        const timePerWord = 30; // 30 seconds per word
+        const timePerWord = 60; // 60 seconds per word
 
         const backgroundColors = [
             '#f0f9ff', // Level 0: light blue
@@ -245,7 +245,7 @@
         }
         
         function updateBackgroundColor() {
-            const level = Math.floor(score / 1000);
+            const level = Math.floor(score / 150);
             const colorIndex = Math.min(level, backgroundColors.length - 1);
             document.body.style.backgroundColor = backgroundColors[colorIndex];
         }
@@ -257,6 +257,8 @@
     </script>
 </body>
 </html>
+
+
 
 
 
