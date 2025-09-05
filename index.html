@@ -13,6 +13,7 @@
             background-image:
                 linear-gradient(rgba(227, 242, 253, 0.95), rgba(227, 242, 253, 0.95)),
                 url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2390cdf4' fill-opacity='0.2'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            transition: background-color 0.5s ease-in-out;
         }
         .keyboard-btn {
             transition: all 0.2s ease-in-out;
@@ -46,6 +47,12 @@
     <div class="w-full max-w-2xl mx-auto p-4 md:p-6 bg-white rounded-2xl shadow-2xl text-center">
         <h1 class="text-3xl md:text-4xl font-bold text-slate-800 mb-2">Health Word Challenge</h1>
         <p class="text-slate-500 mb-4">Guess the letters to reveal the hidden word!</p>
+
+        <!-- Score and Time counters -->
+        <div class="flex justify-between items-center mb-4 px-4 text-slate-600 text-lg">
+            <div>Score: <span id="score" class="font-bold text-sky-600">0</span></div>
+            <div>Time: <span id="timer" class="font-bold text-red-500">30</span></div>
+        </div>
 
         <!-- Villain container -->
         <div id="lives-container" class="flex justify-center items-center space-x-2 mb-6 h-12">
@@ -86,11 +93,28 @@
         const newGameBtn = document.getElementById('new-game-btn');
         const messageContainer = document.getElementById('message-container');
         const livesContainer = document.getElementById('lives-container');
+        const scoreEl = document.getElementById('score');
+        const timerEl = document.getElementById('timer');
 
         let currentWord = '';
         let guessedWord = [];
         let incorrectGuesses = 0;
         const maxIncorrectGuesses = 6;
+        
+        let score = 0;
+        let timeLeft = 0;
+        let timerInterval;
+        const timePerWord = 30; // 30 seconds per word
+
+        const backgroundColors = [
+            '#f0f9ff', // Level 0: light blue
+            '#f0fdf4', // Level 1: light green
+            '#fefce8', // Level 2: light yellow
+            '#fff7ed', // Level 3: light orange
+            '#fdf2f8', // Level 4: light pink
+            '#faf5ff', // Level 5: light purple
+            '#eff6ff'  // Level 6: indigo
+        ];
 
         function selectNewWord() {
             currentWord = words[Math.floor(Math.random() * words.length)];
@@ -162,10 +186,17 @@
         function checkGameState() {
             if (guessedWord.join('') === currentWord) {
                 // Win condition
-                showMessage('You got it! Well done!', 'text-sky-600');
+                clearInterval(timerInterval);
+                const pointsEarned = timeLeft * 10;
+                score += pointsEarned;
+                scoreEl.textContent = score;
+
+                showMessage(`+${pointsEarned} points! Well done!`, 'text-sky-600');
+                updateBackgroundColor();
                 disableKeyboard();
             } else if (incorrectGuesses >= maxIncorrectGuesses) {
                 // Lose condition
+                clearInterval(timerInterval);
                 showMessage(`The word was: ${currentWord}`, 'text-slate-700');
                 wordContainer.textContent = currentWord.split('').join(' ');
                 disableKeyboard();
@@ -190,8 +221,35 @@
             renderWord();
             renderKeyboard();
             showMessage('Good luck!', 'text-slate-500');
+            startTimer();
         }
         
+        function startTimer() {
+            timeLeft = timePerWord;
+            timerEl.textContent = timeLeft;
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                timerEl.textContent = timeLeft;
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    handleTimeUp();
+                }
+            }, 1000);
+        }
+
+        function handleTimeUp() {
+            showMessage(`Time's up! The word was: ${currentWord}`, 'text-slate-700');
+            wordContainer.textContent = currentWord.split('').join(' ');
+            disableKeyboard();
+        }
+        
+        function updateBackgroundColor() {
+            const level = Math.floor(score / 1000);
+            const colorIndex = Math.min(level, backgroundColors.length - 1);
+            document.body.style.backgroundColor = backgroundColors[colorIndex];
+        }
+
         newGameBtn.addEventListener('click', startGame);
 
         // Initial game start
@@ -199,5 +257,6 @@
     </script>
 </body>
 </html>
+
 
 
